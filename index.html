@@ -71,36 +71,36 @@
       display: block;
       margin-bottom: 0.5rem;
     }
-    /* Final Button Section */
-    #finalSection {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 1.5rem;
-      margin-top: -50px; /* Bring section up slightly */
+    /* Final Button Container – fixed so it stays in place */
+    #finalButtonContainer {
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
     }
+    /* Nebula animated button */
     #endButton {
       padding: 25px 50px;
       font-size: 2.5rem;
       color: #fff;
-      background: linear-gradient(45deg, #ff0000, #ff5555);
+      background: linear-gradient(45deg, #ff0033, #ff66cc, #3300ff, #0033ff);
+      background-size: 200% 200%;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-      transition: all 0.3s ease;
-      animation: pulse 2s infinite;
+      transition: transform 0.3s ease, background 0.3s ease;
+      animation: nebulaGradient 4s ease infinite;
     }
     #endButton:hover {
+      transform: scale(1.1);
       box-shadow: 0 0 60px rgba(255, 0, 0, 1);
     }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
+    @keyframes nebulaGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     /* End Credits Styling */
     #endCredits {
@@ -232,10 +232,11 @@
         </p>
       </div>
     </div>
-    <!-- Final Section with the Unique Button -->
-    <div class="section" id="finalSection">
-      <button id="endButton">let the code end</button>
-    </div>
+  </div>
+  
+  <!-- Final Button Container -->
+  <div id="finalButtonContainer">
+    <button id="endButton">let the code end</button>
   </div>
   
   <!-- End Credits Container -->
@@ -442,39 +443,40 @@
     
     endButton.addEventListener("click", () => {
       const tl = gsap.timeline();
-      // Suck in effect: scale down main content and canvas toward the center
+      // Animate main content scaling down (sucking into the button’s fixed center)
       tl.to("#mainContent", {
         duration: 1, 
         scale: 0, 
         transformOrigin: "center center",
         ease: "power2.inOut"
       }, 0);
+      // Animate the background (canvas) fading out
       tl.to("canvas", {
         duration: 1, 
-        scale: 0, 
-        transformOrigin: "center center",
+        opacity: 0,
         ease: "power2.inOut"
       }, 0);
-      // Explosion effect: flash white background briefly
-      tl.to("body", {
-        duration: 0.5,
-        backgroundColor: "#fff",
-        ease: "power2.out"
-      });
-      // Hide main content and canvas after explosion
-      tl.set("#mainContent, canvas", {display: "none"});
-      // Reveal end credits container and animate in text staggered
+      // Do not animate the button—it stays in place
+      
+      // Delay before showing end credits so viewers can process
+      tl.to({}, {duration: 0.5});
+      // Animate end credits in (staggered)
       tl.set("#endCredits", {display: "flex"});
       tl.to("#endCredits p", {
         duration: 1,
         opacity: 1,
-        scale: 1,
         stagger: 0.5,
         ease: "back.out(2)"
       });
-      // Nova explosion effect: animate the nova element expanding and fading
+      // Nova explosion effect on end credits
       tl.set("#nova", {opacity: 1, scale: 0});
-      tl.to("#nova", {duration: 1, scale: 50, opacity: 0, ease: "expo.out"});
+      tl.to("#nova", {duration: 1, scale: 50, opacity: 0, ease: "expo.out"}, "-=0.5");
+      // Finally, animate the background (canvas) back in after a delay
+      tl.to("canvas", {
+        duration: 1,
+        opacity: 1,
+        ease: "power2.out"
+      }, "+=1");
     });
   </script>
 </body>
