@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cosmic Inspiration Blog</title>
   <style>
     /* Base Reset & Styles */
@@ -15,7 +15,7 @@
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Hide text initially */
+    /* Hide text initially to avoid FOUC */
     h1, p, .blog-content p {
       opacity: 0;
     }
@@ -34,7 +34,7 @@
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 1.5rem; /* slightly reduced spacing */
+      padding: 1.5rem;
     }
     h1 {
       font-size: 4rem;
@@ -50,7 +50,7 @@
     /* Scramble text accent */
     .dud {
       opacity: 0.5;
-      color: #ff5555; /* red accent */
+      color: #ff5555;
     }
     /* Blog Content Styling */
     .blog-content {
@@ -74,6 +74,72 @@
   </style>
 </head>
 <body>
+  <!-- Vertex Shader for Cosmic Background -->
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  </script>
+  
+  <!-- Fragment Shader for Cosmic Background -->
+  <script id="fragmentShader" type="x-shader/x-fragment">
+    uniform float u_time;
+    uniform vec2 u_resolution;
+    varying vec2 vUv;
+    
+    // Simple random noise
+    float random (in vec2 st) {
+        return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+    }
+    
+    // 2D noise function
+    float noise (in vec2 st) {
+        vec2 i = floor(st);
+        vec2 f = fract(st);
+    
+        float a = random(i);
+        float b = random(i + vec2(1.0, 0.0));
+        float c = random(i + vec2(0.0, 1.0));
+        float d = random(i + vec2(1.0, 1.0));
+    
+        vec2 u = f * f * (3.0 - 2.0 * f);
+    
+        return mix(a, b, u.x) +
+               (c - a)* u.y * (1.0 - u.x) +
+               (d - b) * u.x * u.y;
+    }
+    
+    void main() {
+      vec2 st = gl_FragCoord.xy / u_resolution.xy;
+      
+      // Center and zoom coordinates for a cosmic view
+      vec2 pos = (st - 0.5) * 3.0;
+      
+      // Polar coordinates for swirling effect
+      float r = length(pos);
+      float angle = atan(pos.y, pos.x);
+      
+      // Apply a time-based swirl
+      angle += 0.5 * sin(u_time + r * 10.0);
+      
+      // Convert back to Cartesian coordinates
+      vec2 uv = vec2(r * cos(angle), r * sin(angle));
+      
+      // Generate noise for nebula texture
+      float n = noise(uv * 5.0 + u_time * 0.2);
+      
+      // Mix deep black with a rich red based on noise
+      vec3 color = mix(vec3(0.0, 0.0, 0.0), vec3(0.6, 0.0, 0.0), n);
+      
+      // Add a subtle radial glow
+      color += (1.0 - smoothstep(0.0, 0.5, r)) * vec3(0.2, 0.0, 0.0);
+      
+      gl_FragColor = vec4(color, 1.0);
+    }
+  </script>
+  
   <!-- Introductory Sections -->
   <div class="section" id="section1">
     <h1 id="text1">Welcome to the Cosmic Journey</h1>
@@ -88,7 +154,7 @@
     <p id="text4">Let each moment inspire you to create, innovate, and dream without limits.</p>
   </div>
 
-  <!-- Blog Content Section with Your Text -->
+  <!-- Blog Content Section -->
   <div class="section" id="sectionBlog">
     <div class="blog-content">
       <p id="blogText1">
@@ -129,18 +195,34 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
+  
   <script>
-    /* Cosmic Background using Three.js */
+    /* Cosmic Background with Enhanced Shader & Particles */
     function initBackground() {
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 2000);
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 3000);
       camera.position.z = 400;
       
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
       
+      // Create a large plane with our custom shader for an immersive cosmic nebula
+      const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
+      const shaderMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          u_time: { value: 0 },
+          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+        },
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent,
+        depthWrite: false
+      });
+      const plane = new THREE.Mesh(planeGeometry, shaderMaterial);
+      plane.position.z = -600;
+      scene.add(plane);
+      
+      // Particle system for additional cosmic sparkle
       const particleCount = 1500;
       const geometry = new THREE.BufferGeometry();
       const positions = [];
@@ -164,6 +246,8 @@
       
       function animate() {
         requestAnimationFrame(animate);
+        // Update shader uniform for a dynamic, time-evolving nebula
+        shaderMaterial.uniforms.u_time.value = performance.now() / 1000;
         particles.rotation.y += 0.0005;
         renderer.render(scene, camera);
       }
@@ -173,11 +257,12 @@
         camera.aspect = window.innerWidth/window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        shaderMaterial.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
       });
     }
     initBackground();
-
-    /* Faster TextScramble Class with a warp effect */
+    
+    /* TextScramble Class for Text Effects */
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -192,7 +277,6 @@
         for (let i = 0; i < length; i++) {
           const from = oldText[i] || '';
           const to = newText[i] || '';
-          // Reduced delay for faster warp effect
           const start = Math.floor(Math.random() * 20);
           const end = start + Math.floor(Math.random() * 20);
           this.queue.push({ from, to, start, end, char: '' });
@@ -232,7 +316,7 @@
         return this.chars[Math.floor(Math.random() * this.chars.length)];
       }
     }
-
+    
     /* GSAP Scroll-Triggered Animations for Intro Sections */
     function initTextAnimations() {
       const texts = [
@@ -250,21 +334,29 @@
           start: 'top 80%',
           onEnter: () => {
             scramble.setText(item.newText);
-            // Warp-like fast entrance
+            gsap.fromTo(el, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          },
+          onLeave: () => {
+            gsap.to(el, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
+          },
+          onEnterBack: () => {
+            scramble.setText(item.newText);
             gsap.fromTo(el, 
               { opacity: 0, scale: 0.8, skewX: 20 }, 
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
           },
           onLeaveBack: () => {
-            scramble.setText(item.newText.split('').sort(() => 0.5 - Math.random()).join(''));
             gsap.to(el, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
       });
     }
     initTextAnimations();
-
+    
     /* GSAP Scroll-Triggered Animations for Blog Content */
     function initBlogAnimations() {
       const blogParagraphs = document.querySelectorAll('.blog-content p');
@@ -280,8 +372,17 @@
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
           },
+          onLeave: () => {
+            gsap.to(paragraph, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
+          },
+          onEnterBack: () => {
+            scramble.setText(paragraph.textContent);
+            gsap.fromTo(paragraph, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          },
           onLeaveBack: () => {
-            scramble.setText(paragraph.textContent.split('').sort(() => 0.5 - Math.random()).join(''));
             gsap.to(paragraph, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
