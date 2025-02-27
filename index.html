@@ -234,14 +234,14 @@
     </div>
     <!-- Final Section with the Unique Button -->
     <div class="section" id="finalSection">
-      <button id="endButton">let the code end</button>
+      <button id="endButton">let the code end?</button>
     </div>
   </div>
   
   <!-- End Credits Container -->
   <div id="endCredits">
-    <p id="credit1">code is infinite</p>
-    <p id="credit2">made with love</p>
+    <p id="credit1">Code is infinite</p>
+    <p id="credit2">Made with love ❤️</p>
     <p id="credit3">Lumen</p>
     <div id="nova"></div>
   </div>
@@ -434,10 +434,10 @@
     /* Final Button Interactivity and Ending Sequence */
     const endButton = document.getElementById("endButton");
     endButton.addEventListener("mouseenter", () => {
-      endButton.textContent = "set me free";
+      endButton.textContent = "set me free?";
     });
     endButton.addEventListener("mouseleave", () => {
-      endButton.textContent = "let the code end";
+      endButton.textContent = "let the code end?";
     });
     
     endButton.addEventListener("click", () => {
@@ -466,7 +466,7 @@
       // Reveal end credits container and animate in text staggered
       tl.set("#endCredits", {display: "flex"});
       tl.to("#endCredits p", {
-        duration: 1,
+        duration: 3,
         opacity: 1,
         scale: 1,
         stagger: 0.5,
