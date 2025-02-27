@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cosmic Inspiration Blog</title>
   <style>
-    /* Reset & Base Styles */
+    /* Base Reset & Styles */
     html, body {
       margin: 0;
       padding: 0;
@@ -15,14 +15,18 @@
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Three.js canvas in the background */
+    /* Hide text initially */
+    h1, p, .blog-content p {
+      opacity: 0;
+    }
+    /* Three.js canvas as a background layer */
     canvas {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -1;
     }
-    /* Section styling */
+    /* Section Styling */
     .section {
       min-height: 100vh;
       display: flex;
@@ -30,7 +34,7 @@
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 2rem;
+      padding: 1.5rem; /* slightly reduced spacing */
     }
     h1 {
       font-size: 4rem;
@@ -43,7 +47,7 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    /* Style for scrambled text characters */
+    /* Scramble text accent */
     .dud {
       opacity: 0.5;
       color: #ff5555; /* red accent */
@@ -53,7 +57,7 @@
       max-width: 800px;
       margin: 0 auto;
       text-align: left;
-      padding: 2rem;
+      padding: 1.5rem;
       line-height: 1.6;
     }
     .blog-content p {
@@ -121,14 +125,13 @@
     </div>
   </div>
 
-  <!-- Three.js for Cosmic Background -->
+  <!-- Include Three.js and GSAP Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- GSAP and ScrollTrigger for Animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
   <script>
-    /* Cosmic Background with Three.js */
+    /* Cosmic Background using Three.js */
     function initBackground() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 2000);
@@ -174,7 +177,7 @@
     }
     initBackground();
 
-    /* TextScramble Class for Text Effects */
+    /* Faster TextScramble Class with a warp effect */
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -189,8 +192,9 @@
         for (let i = 0; i < length; i++) {
           const from = oldText[i] || '';
           const to = newText[i] || '';
-          const start = Math.floor(Math.random() * 40);
-          const end = start + Math.floor(Math.random() * 40);
+          // Reduced delay for faster warp effect
+          const start = Math.floor(Math.random() * 20);
+          const end = start + Math.floor(Math.random() * 20);
           this.queue.push({ from, to, start, end, char: '' });
         }
         cancelAnimationFrame(this.frameRequest);
@@ -229,7 +233,7 @@
       }
     }
 
-    /* Scroll-Triggered Animations for Intro Sections */
+    /* GSAP Scroll-Triggered Animations for Intro Sections */
     function initTextAnimations() {
       const texts = [
         { id: 'text1', newText: 'Welcome to the Cosmic Journey' },
@@ -246,18 +250,22 @@
           start: 'top 80%',
           onEnter: () => {
             scramble.setText(item.newText);
-            gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 1 });
+            // Warp-like fast entrance
+            gsap.fromTo(el, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
           },
           onLeaveBack: () => {
             scramble.setText(item.newText.split('').sort(() => 0.5 - Math.random()).join(''));
-            gsap.to(el, { opacity: 0.5, duration: 1 });
+            gsap.to(el, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
       });
     }
     initTextAnimations();
 
-    /* Scroll-Triggered Animations for Blog Content */
+    /* GSAP Scroll-Triggered Animations for Blog Content */
     function initBlogAnimations() {
       const blogParagraphs = document.querySelectorAll('.blog-content p');
       blogParagraphs.forEach(paragraph => {
@@ -267,11 +275,14 @@
           start: 'top 90%',
           onEnter: () => {
             scramble.setText(paragraph.textContent);
-            gsap.fromTo(paragraph, { opacity: 0 }, { opacity: 1, duration: 1 });
+            gsap.fromTo(paragraph, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
           },
           onLeaveBack: () => {
             scramble.setText(paragraph.textContent.split('').sort(() => 0.5 - Math.random()).join(''));
-            gsap.to(paragraph, { opacity: 0.5, duration: 1 });
+            gsap.to(paragraph, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
       });
