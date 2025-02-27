@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cosmic Inspiration Blog</title>
   <style>
-    /* Base Reset & Styles */
+    /* Base Reset & Global Styles */
     html, body {
       margin: 0;
       padding: 0;
@@ -15,16 +15,16 @@
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Hide text initially to avoid FOUC */
+    /* Hide text initially to avoid flash before animation */
     h1, p, .blog-content p {
       opacity: 0;
     }
-    /* Three.js canvas as a background layer */
+    /* Ensure the Three.js canvas stays behind all content */
     canvas {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: -1;
+      z-index: -2;
     }
     /* Section Styling */
     .section {
@@ -47,7 +47,6 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    /* Scramble text accent */
     .dud {
       opacity: 0.5;
       color: #ff5555;
@@ -71,10 +70,65 @@
       display: block;
       margin-bottom: 0.5rem;
     }
+    /* Final Button Section */
+    #finalSection {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 1.5rem;
+    }
+    #endButton {
+      padding: 20px 40px;
+      font-size: 2rem;
+      color: #fff;
+      background: linear-gradient(45deg, #ff0000, #ff5555);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      transition: all 0.3s ease;
+    }
+    #endButton:hover {
+      box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+    }
+    /* End Credits Styling */
+    #endCredits {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      z-index: 10;
+    }
+    #endCredits p {
+      font-size: 2rem;
+      margin: 10px 0;
+    }
+    /* Nova effect for the explosion finale */
+    #nova {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, #fff, rgba(255,255,255,0));
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 11;
+    }
   </style>
 </head>
 <body>
-  <!-- Vertex Shader for Cosmic Background -->
+  <!-- Shaders for the Cosmic Background -->
   <script id="vertexShader" type="x-shader/x-vertex">
     varying vec2 vUv;
     void main() {
@@ -82,122 +136,112 @@
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   </script>
-  
-  <!-- Fragment Shader for Cosmic Background -->
   <script id="fragmentShader" type="x-shader/x-fragment">
     uniform float u_time;
     uniform vec2 u_resolution;
     varying vec2 vUv;
     
-    // Simple random noise
     float random (in vec2 st) {
-        return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+      return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
-    
-    // 2D noise function
     float noise (in vec2 st) {
-        vec2 i = floor(st);
-        vec2 f = fract(st);
-    
-        float a = random(i);
-        float b = random(i + vec2(1.0, 0.0));
-        float c = random(i + vec2(0.0, 1.0));
-        float d = random(i + vec2(1.0, 1.0));
-    
-        vec2 u = f * f * (3.0 - 2.0 * f);
-    
-        return mix(a, b, u.x) +
-               (c - a)* u.y * (1.0 - u.x) +
-               (d - b) * u.x * u.y;
+      vec2 i = floor(st);
+      vec2 f = fract(st);
+      float a = random(i);
+      float b = random(i + vec2(1.0, 0.0));
+      float c = random(i + vec2(0.0, 1.0));
+      float d = random(i + vec2(1.0, 1.0));
+      vec2 u = f*f*(3.0-2.0*f);
+      return mix(a, b, u.x) +
+             (c - a)* u.y * (1.0 - u.x) +
+             (d - b) * u.x * u.y;
     }
-    
     void main() {
       vec2 st = gl_FragCoord.xy / u_resolution.xy;
-      
-      // Center and zoom coordinates for a cosmic view
       vec2 pos = (st - 0.5) * 3.0;
-      
-      // Polar coordinates for swirling effect
       float r = length(pos);
       float angle = atan(pos.y, pos.x);
-      
-      // Apply a time-based swirl
       angle += 0.5 * sin(u_time + r * 10.0);
-      
-      // Convert back to Cartesian coordinates
       vec2 uv = vec2(r * cos(angle), r * sin(angle));
-      
-      // Generate noise for nebula texture
       float n = noise(uv * 5.0 + u_time * 0.2);
-      
-      // Mix deep black with a rich red based on noise
       vec3 color = mix(vec3(0.0, 0.0, 0.0), vec3(0.6, 0.0, 0.0), n);
-      
-      // Add a subtle radial glow
       color += (1.0 - smoothstep(0.0, 0.5, r)) * vec3(0.2, 0.0, 0.0);
-      
       gl_FragColor = vec4(color, 1.0);
     }
   </script>
   
-  <!-- Introductory Sections -->
-  <div class="section" id="section1">
-    <h1 id="text1">Welcome to the Cosmic Journey</h1>
-  </div>
-  <div class="section" id="section2">
-    <p id="text2">Explore the unknown, transcend boundaries, and awaken your inner universe.</p>
-  </div>
-  <div class="section" id="section3">
-    <h1 id="text3">Embrace the Future</h1>
-  </div>
-  <div class="section" id="section4">
-    <p id="text4">Let each moment inspire you to create, innovate, and dream without limits.</p>
-  </div>
-
-  <!-- Blog Content Section -->
-  <div class="section" id="sectionBlog">
-    <div class="blog-content">
-      <p id="blogText1">
-        Our written code defines both present and future outcomes<br>
-        Programming consists of more than simple code writing because it represents creative art alongside innovative heartbeats which establish the base of digital reality. Technological evolution meets a high standard of obligation because programmers handle these new difficulties that emerge in their trade.
-      </p>
-      <p id="blogText2">
-        <strong>1. AI in Coding: Evolution or Extinction?</strong>
-        Artificial intelligence exists today to write software code and repair program flaws while making continuous self-optimizations. The efficiency claims of GitHub Copilot generate concerns about whether developers receive empowerment or face replacement. The training process of AI models on open-source code generates ethical issues regarding intellectual property rights and bias-related problems. The future of coding exists in the way programmers learn to control AI technology rather than in AI taking over programming responsibilities.
-      </p>
-      <p id="blogText3">
-        <strong>2. The digital realm exists because of cybersecurity which operates through protective computer codes.</strong>
-        Every keystroke has consequences. An individual vulnerability has the power to endanger millions of people from cyberattacks. Secure code writing stands as a mandatory responsibility because data functions as digital currency in present-day society. Quantum computing technology now poses a threat to all encryption methods which compels developers to create new security approaches. The ongoing battle between defenders and hackers continues indefinitely so the most effective tool we possess comes from our acquired understanding.
-      </p>
-      <p id="blogText4">
-        <strong>3. Open-Source vs. Proprietary: Freedom or Control?</strong>
-        A group of people hold the belief that code must exist as a free resource which advances human progress. The development of software requires both financial support and organizational structure as well as exclusive control to achieve significant advancements. Both difference-making open-source projects and the world-changing powerful technologies are controlled by corporate interests although their development comes from open-source programming. The world will be shaped by which force emerges victorious.
-      </p>
-      <p id="blogText5">
-        <strong>4. Low-Code & No-Code: A Gateway or a Gimmick?</strong>
-        Software development becomes possible without writing code. Thousands now can develop applications through low-code and no-code software platforms yet developers question the effectiveness of fundamental development practices. The tools reduce boundaries but genuine innovation needs people who grasp the inner workings to achieve it. Programmers will evolve into architectural designers instead of software construction specialists.
-      </p>
-      <p id="blogText6">
-        <strong>5. Software Bloat: The Silent Killer of Performance</strong>
-        Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers from superior ones.
-      </p>
-      <p id="blogText7">
-        <strong>The Code We Leave Behind</strong>
-        Our written functions together with all our daily decisions will determine the digital landscape of the future. Current solution-based approaches define the user experiences which future generations will encounter. Programming functions as both skill and time-tested inheritance system. What we build stands as the essential aspect of development.
-      </p>
-      <p id="blogText8">
-        The question focuses on which type of world we intend to build.
-      </p>
+  <!-- Main Content Container -->
+  <div id="mainContent">
+    <!-- Introductory Sections -->
+    <div class="section" id="section1">
+      <h1 id="text1">Welcome to the Cosmic Journey</h1>
+    </div>
+    <div class="section" id="section2">
+      <p id="text2">Explore the unknown, transcend boundaries, and awaken your inner universe.</p>
+    </div>
+    <div class="section" id="section3">
+      <h1 id="text3">Embrace the Future</h1>
+    </div>
+    <div class="section" id="section4">
+      <p id="text4">Let each moment inspire you to create, innovate, and dream without limits.</p>
+    </div>
+    <!-- Blog Content Section -->
+    <div class="section" id="sectionBlog">
+      <div class="blog-content">
+        <p id="blogText1">
+          Our written code defines both present and future outcomes<br>
+          Programming consists of more than simple code writing because it represents creative art alongside innovative heartbeats which establish the base of digital reality. Technological evolution meets a high standard of obligation because programmers handle these new difficulties that emerge in their trade.
+        </p>
+        <p id="blogText2">
+          <strong>1. AI in Coding: Evolution or Extinction?</strong>
+          Artificial intelligence exists today to write software code and repair program flaws while making continuous self-optimizations. The efficiency claims of GitHub Copilot generate concerns about whether developers receive empowerment or face replacement. The training process of AI models on open-source code generates ethical issues regarding intellectual property rights and bias-related problems. The future of coding exists in the way programmers learn to control AI technology rather than in AI taking over programming responsibilities.
+        </p>
+        <p id="blogText3">
+          <strong>2. The digital realm exists because of cybersecurity which operates through protective computer codes.</strong>
+          Every keystroke has consequences. An individual vulnerability has the power to endanger millions of people from cyberattacks. Secure code writing stands as a mandatory responsibility because data functions as digital currency in present-day society. Quantum computing technology now poses a threat to all encryption methods which compels developers to create new security approaches. The ongoing battle between defenders and hackers continues indefinitely so the most effective tool we possess comes from our acquired understanding.
+        </p>
+        <p id="blogText4">
+          <strong>3. Open-Source vs. Proprietary: Freedom or Control?</strong>
+          A group of people hold the belief that code must exist as a free resource which advances human progress. The development of software requires both financial support and organizational structure as well as exclusive control to achieve significant advancements. Both difference-making open-source projects and the world-changing powerful technologies are controlled by corporate interests although their development comes from open-source programming. The world will be shaped by which force emerges victorious.
+        </p>
+        <p id="blogText5">
+          <strong>4. Low-Code & No-Code: A Gateway or a Gimmick?</strong>
+          Software development becomes possible without writing code. Thousands now can develop applications through low-code and no-code software platforms yet developers question the effectiveness of fundamental development practices. The tools reduce boundaries but genuine innovation needs people who grasp the inner workings to achieve it. Programmers will evolve into architectural designers instead of software construction specialists.
+        </p>
+        <p id="blogText6">
+          <strong>5. Software Bloat: The Silent Killer of Performance</strong>
+          Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers from superior ones.
+        </p>
+        <p id="blogText7">
+          <strong>The Code We Leave Behind</strong>
+          Our written functions together with all our daily decisions will determine the digital landscape of the future. Current solution-based approaches define the user experiences which future generations will encounter. Programming functions as both skill and time-tested inheritance system. What we build stands as the essential aspect of development.
+        </p>
+        <p id="blogText8">
+          The question focuses on which type of world we intend to build.
+        </p>
+      </div>
+    </div>
+    <!-- Final Section with the Unique Button -->
+    <div class="section" id="finalSection">
+      <button id="endButton">let the code end</button>
     </div>
   </div>
-
+  
+  <!-- End Credits Container -->
+  <div id="endCredits">
+    <p>code is infinite</p>
+    <p>made with love</p>
+    <p>Lumen</p>
+    <div id="nova"></div>
+  </div>
+  
   <!-- Include Three.js and GSAP Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script>
-    /* Cosmic Background with Enhanced Shader & Particles */
+    /* Initialize Cosmic Background with Enhanced Shader & Particles */
     function initBackground() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 3000);
@@ -207,7 +251,7 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
       
-      // Create a large plane with our custom shader for an immersive cosmic nebula
+      // Create a large plane with our custom shader for a nebula effect
       const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
       const shaderMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -246,7 +290,6 @@
       
       function animate() {
         requestAnimationFrame(animate);
-        // Update shader uniform for a dynamic, time-evolving nebula
         shaderMaterial.uniforms.u_time.value = performance.now() / 1000;
         particles.rotation.y += 0.0005;
         renderer.render(scene, camera);
@@ -262,7 +305,7 @@
     }
     initBackground();
     
-    /* TextScramble Class for Text Effects */
+    /* TextScramble Class for Animated Text Effects */
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -317,7 +360,7 @@
       }
     }
     
-    /* GSAP Scroll-Triggered Animations for Intro Sections */
+    /* GSAP Scroll-Triggered Animations for Intro & Blog Text */
     function initTextAnimations() {
       const texts = [
         { id: 'text1', newText: 'Welcome to the Cosmic Journey' },
@@ -339,25 +382,18 @@
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
           },
-          onLeave: () => {
-            gsap.to(el, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
-          },
           onEnterBack: () => {
             scramble.setText(item.newText);
             gsap.fromTo(el, 
               { opacity: 0, scale: 0.8, skewX: 20 }, 
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
-          },
-          onLeaveBack: () => {
-            gsap.to(el, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
       });
     }
     initTextAnimations();
     
-    /* GSAP Scroll-Triggered Animations for Blog Content */
     function initBlogAnimations() {
       const blogParagraphs = document.querySelectorAll('.blog-content p');
       blogParagraphs.forEach(paragraph => {
@@ -372,23 +408,57 @@
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
           },
-          onLeave: () => {
-            gsap.to(paragraph, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
-          },
           onEnterBack: () => {
             scramble.setText(paragraph.textContent);
             gsap.fromTo(paragraph, 
               { opacity: 0, scale: 0.8, skewX: 20 }, 
               { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
             );
-          },
-          onLeaveBack: () => {
-            gsap.to(paragraph, { opacity: 0, scale: 0.8, skewX: -20, duration: 0.7, ease: "power1.in" });
           }
         });
       });
     }
     initBlogAnimations();
+    
+    /* Final Button Interactivity and Ending Sequence */
+    const endButton = document.getElementById("endButton");
+    endButton.addEventListener("mouseenter", () => {
+      endButton.textContent = "set me free";
+    });
+    endButton.addEventListener("mouseleave", () => {
+      endButton.textContent = "let the code end";
+    });
+    
+    endButton.addEventListener("click", () => {
+      const tl = gsap.timeline();
+      // Suck in effect: scale down main content and canvas toward the button’s center
+      tl.to("#mainContent", {
+        duration: 1, 
+        scale: 0, 
+        transformOrigin: "center center",
+        ease: "power2.inOut"
+      }, 0);
+      tl.to("canvas", {
+        duration: 1, 
+        scale: 0, 
+        transformOrigin: "center center",
+        ease: "power2.inOut"
+      }, 0);
+      // Explosion effect: flash white background briefly
+      tl.to("body", {
+        duration: 0.5,
+        backgroundColor: "#fff",
+        ease: "power2.out"
+      });
+      // Hide all main content and canvas
+      tl.set("#mainContent, canvas", {display: "none"});
+      // Reveal end credits container and animate them in
+      tl.set("#endCredits", {display: "flex"});
+      tl.from("#endCredits", {duration: 1, opacity: 0, scale: 0.5, ease: "back.out(2)"});
+      // Nova explosion effect: animate the nova element expanding and fading
+      tl.set("#nova", {opacity: 1, scale: 0});
+      tl.to("#nova", {duration: 1, scale: 50, opacity: 0, ease: "expo.out"});
+    });
   </script>
 </body>
 </html>
