@@ -6,26 +6,25 @@
   <title>Cosmic Inspiration Blog</title>
   <style>
     /* Base Reset & Global Styles */
-    html, body {
+    * {
       margin: 0;
       padding: 0;
-      /* Fallback fluid gradient in case shader fails */
+      box-sizing: border-box;
+    }
+    body {
       background: linear-gradient(45deg, #000, #300);
       color: #fff;
-      font-family: 'Arial', sans-serif;
+      font-family: Arial, sans-serif;
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* (Removed the opacity:0 rule so text is visible on load) */
-    
-    /* Three.js canvas behind everything */
+    /* Three.js canvas placed behind everything */
     canvas {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -2;
     }
-    /* Section Styling */
     .section {
       min-height: 100vh;
       display: flex;
@@ -37,7 +36,6 @@
     }
     h1 {
       font-size: 4rem;
-      margin: 0;
       text-transform: uppercase;
       letter-spacing: 0.5rem;
     }
@@ -46,11 +44,11 @@
       max-width: 800px;
       margin: 0 auto;
     }
+    /* “Dud” characters in glitch effect */
     .dud {
       opacity: 0.5;
       color: #ff5555;
     }
-    /* Blog Content Styling */
     .blog-content {
       max-width: 800px;
       margin: 0 auto;
@@ -69,7 +67,7 @@
       display: block;
       margin-bottom: 0.5rem;
     }
-    /* Wrap numbered posts in clickable containers */
+    /* Each blog post is clickable */
     .blog-post {
       cursor: pointer;
       transition: transform 0.3s ease;
@@ -77,7 +75,7 @@
     .blog-post:hover {
       transform: scale(1.02);
     }
-    /* Scroll Arrows (placed below Section1 header) */
+    /* Animated Down Arrows */
     #scrollArrows {
       margin-top: 20px;
       display: flex;
@@ -98,7 +96,7 @@
       50%  { border-color: darkred; }
       100% { border-color: black; }
     }
-    /* Final Button Section (reverting to previous placement) */
+    /* Final Button Section (at the bottom as before) */
     #finalSection {
       min-height: 100vh;
       display: flex;
@@ -117,13 +115,13 @@
       border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     #endButton:hover {
       transform: scale(1.05);
       box-shadow: 0 0 60px rgba(255, 0, 0, 1);
     }
-    /* End Credits Styling */
+    /* End Credits */
     #endCredits {
       display: none;
       position: fixed;
@@ -133,6 +131,7 @@
       height: 100%;
       background: #000;
       color: #fff;
+      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
@@ -144,7 +143,7 @@
       margin: 10px 0;
       opacity: 0;
     }
-    /* Nova effect for explosion finale */
+    /* Nova Explosion Effect */
     #nova {
       position: absolute;
       width: 50px;
@@ -158,56 +157,54 @@
   </style>
 </head>
 <body>
-  <!-- Vertex Shader for Cosmic Background -->
+  <!-- Vertex Shader -->
   <script id="vertexShader" type="x-shader/x-vertex">
     varying vec2 vUv;
-    void main() {
+    void main(){
       vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
     }
   </script>
-  <!-- Fragment Shader for Cosmic Background with fluid offset and a uniform base color -->
+  <!-- Fragment Shader (with fluid offset and animated base color) -->
   <script id="fragmentShader" type="x-shader/x-fragment">
     uniform float u_time;
     uniform vec2 u_resolution;
     uniform vec3 u_baseColor;
     varying vec2 vUv;
     
-    float random (in vec2 st) {
+    float random(in vec2 st) {
       return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
-    float noise (in vec2 st) {
+    float noise(in vec2 st) {
       vec2 i = floor(st);
       vec2 f = fract(st);
       float a = random(i);
       float b = random(i + vec2(1.0, 0.0));
       float c = random(i + vec2(0.0, 1.0));
       float d = random(i + vec2(1.0, 1.0));
-      vec2 u = f * f * (3.0 - 2.0 * f);
+      vec2 u = f*f*(3.0-2.0*f);
       return mix(a, b, u.x) +
              (c - a) * u.y * (1.0 - u.x) +
              (d - b) * u.x * u.y;
     }
-    void main() {
+    void main(){
       vec2 st = gl_FragCoord.xy / u_resolution.xy;
       vec2 pos = (st - 0.5) * 3.0;
-      // Add a fluid offset for extra motion
       pos += 0.1 * vec2(sin(u_time * 0.5), cos(u_time * 0.5));
       float r = length(pos);
       float angle = atan(pos.y, pos.x);
       angle += 0.5 * sin(u_time + r * 10.0);
       vec2 uv = vec2(r * cos(angle), r * sin(angle));
       float n = noise(uv * 5.0 + u_time * 0.2);
-      // Use u_baseColor so we can animate the background color change
       vec3 color = mix(vec3(0.0), u_baseColor, n);
       color += (1.0 - smoothstep(0.0, 0.5, r)) * vec3(0.2, 0.0, 0.0);
       gl_FragColor = vec4(color, 1.0);
     }
   </script>
   
-  <!-- Main Content Container -->
+  <!-- Main Content -->
   <div id="mainContent">
-    <!-- Section1: Header + Animated Down Arrows -->
+    <!-- Section 1: Header & Animated Arrows -->
     <div class="section" id="section1">
       <h1 id="text1">Welcome to the Cosmic Journey</h1>
       <div id="scrollArrows">
@@ -216,24 +213,26 @@
         <div class="arrow"></div>
       </div>
     </div>
-    <!-- Other Intro Sections -->
+    <!-- Section 2 -->
     <div class="section" id="section2">
       <p id="text2">Explore the unknown, transcend boundaries, and awaken your inner universe.</p>
     </div>
+    <!-- Section 3 -->
     <div class="section" id="section3">
       <h1 id="text3">Embrace the Future</h1>
     </div>
+    <!-- Section 4 -->
     <div class="section" id="section4">
       <p id="text4">Let each moment inspire you to create, innovate, and dream without limits.</p>
     </div>
-    <!-- Blog Content Section -->
+    <!-- Blog Section -->
     <div class="section" id="sectionBlog">
       <div class="blog-content">
         <p id="blogText1">
           Our written code defines both present and future outcomes<br>
           Programming consists of more than simple code writing because it represents creative art alongside innovative heartbeats which establish the base of digital reality. Technological evolution meets a high standard of obligation because programmers handle these new difficulties that emerge in their trade.
         </p>
-        <!-- Each numbered blog post in a clickable container -->
+        <!-- Five clickable blog posts -->
         <div class="blog-post" id="post1">
           <p id="blogText2">
             <strong>1. AI in Coding: Evolution or Extinction?</strong>
@@ -287,30 +286,32 @@
     <div id="nova"></div>
   </div>
   
-  <!-- Include Three.js and GSAP Libraries -->
+  <!-- GSAP and Three.js Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script>
-    /* Initialize Cosmic Background with Enhanced Shader & Particles */
-    let shaderMaterial; // Global so we can animate u_baseColor
+    // Register ScrollTrigger plugin
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Initialize Cosmic Background
+    let shaderMaterial;
     function initBackground() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 3000);
       camera.position.z = 400;
-      
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
       
-      // Large plane with custom shader for a fluid nebula effect
+      // Create a large plane using our custom shader (fluid nebula)
       const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
       shaderMaterial = new THREE.ShaderMaterial({
         uniforms: {
           u_time: { value: 0 },
           u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-          u_baseColor: { value: new THREE.Color(0.6, 0.0, 0.0) } // initial red
+          u_baseColor: { value: new THREE.Color(0.6, 0.0, 0.0) } // starts as red
         },
         vertexShader: document.getElementById('vertexShader').textContent,
         fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -326,7 +327,7 @@
       const positions = [];
       const colors = [];
       const color = new THREE.Color();
-      for(let i = 0; i < particleCount; i++) {
+      for (let i = 0; i < particleCount; i++) {
         positions.push((Math.random() * 2 - 1) * 1000);
         positions.push((Math.random() * 2 - 1) * 1000);
         positions.push((Math.random() * 2 - 1) * 1000);
@@ -348,7 +349,7 @@
       animate();
       
       window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth/window.innerHeight;
+        camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         shaderMaterial.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
@@ -356,7 +357,7 @@
     }
     initBackground();
     
-    /* TextScramble Class for Animated Text Effects */
+    // TextScramble Class for Glitch Effect
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -411,13 +412,13 @@
       }
     }
     
-    /* GSAP Scroll-Triggered Animations for Intro & Blog Text */
+    // Scroll-Triggered Text Animations (with glitch effect)
     function initTextAnimations() {
       const texts = [
         { id: 'text1', newText: 'Welcome to the Cosmic Journey' },
         { id: 'text2', newText: 'Explore the unknown, transcend boundaries, and awaken your inner universe.' },
         { id: 'text3', newText: 'Embrace the Future' },
-        { id: 'text4', newText: 'Let each moment inspire you to create, innovate, and dream without limits.' },
+        { id: 'text4', newText: 'Let each moment inspire you to create, innovate, and dream without limits.' }
       ];
       texts.forEach(item => {
         const el = document.getElementById(item.id);
@@ -427,89 +428,4 @@
           start: 'top 80%',
           onEnter: () => {
             scramble.setText(item.newText);
-            gsap.fromTo(el, 
-              { opacity: 0, scale: 0.8, skewX: 20 }, 
-              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
-            );
-          },
-          onEnterBack: () => {
-            scramble.setText(item.newText);
-            gsap.fromTo(el, 
-              { opacity: 0, scale: 0.8, skewX: 20 }, 
-              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
-            );
-          }
-        });
-      });
-    }
-    initTextAnimations();
-    
-    function initBlogAnimations() {
-      const blogPosts = document.querySelectorAll('.blog-post');
-      blogPosts.forEach(post => {
-        post.addEventListener('click', () => {
-          // Animate background color change: animate u_baseColor from red to dark grey
-          gsap.to(shaderMaterial.uniforms.u_baseColor.value, {
-            r: 0.13,
-            g: 0.13,
-            b: 0.13,
-            duration: 1,
-            ease: "power2.inOut",
-            onUpdate: () => {
-              shaderMaterial.uniforms.u_baseColor.needsUpdate = true;
-            }
-          });
-          // Fade out all other blog posts with a glitch-like fade
-          blogPosts.forEach(otherPost => {
-            if(otherPost !== post){
-              gsap.to(otherPost, { opacity: 0, duration: 0.7, ease: "power2.in" });
-            }
-          });
-          // Expand the clicked post with a glitch reveal
-          const scramble = new TextScramble(post.querySelector('p'));
-          scramble.setText(post.querySelector('p').textContent);
-          gsap.to(post, { 
-            scale: 1.05, 
-            duration: 0.7, 
-            ease: "back.out(2)"
-          });
-        });
-      });
-    }
-    initBlogAnimations();
-    
-    /* Final Button (reverting to previous placement) */
-    const endButton = document.getElementById("endButton");
-    endButton.addEventListener("mouseenter", () => {
-      endButton.textContent = "set me free";
-    });
-    endButton.addEventListener("mouseleave", () => {
-      endButton.textContent = "let the code end";
-    });
-    endButton.addEventListener("click", () => {
-      const tl = gsap.timeline();
-      // Suck in effect: scale down main content toward the button’s location (button remains in place)
-      tl.to("#mainContent", {
-        duration: 1, 
-        scale: 0, 
-        transformOrigin: "center center",
-        ease: "power2.inOut"
-      }, 0);
-      // Fade out the background (canvas)
-      tl.to("canvas", {
-        duration: 1, 
-        opacity: 0,
-        ease: "power2.inOut"
-      }, 0);
-      // Delay then show end credits
-      tl.to({}, {duration: 0.5});
-      tl.set("#endCredits", {display: "flex"});
-      tl.to("#endCredits p", {
-        duration: 1,
-        opacity: 1,
-        stagger: 0.5,
-        ease: "back.out(2)"
-      });
-      // Nova explosion effect
-      tl.set("#nova", {opacity: 1, scale: 0});
-    
+            gsap.from
