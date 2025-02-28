@@ -16,10 +16,8 @@
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Hide text initially to avoid FOUC */
-    h1, p, .blog-content p {
-      opacity: 0;
-    }
+    /* (Removed the opacity:0 rule so text is visible on load) */
+    
     /* Three.js canvas behind everything */
     canvas {
       position: fixed;
@@ -100,7 +98,7 @@
       50%  { border-color: darkred; }
       100% { border-color: black; }
     }
-    /* Final Button – reverted to its original placement */
+    /* Final Button Section (reverting to previous placement) */
     #finalSection {
       min-height: 100vh;
       display: flex;
@@ -125,7 +123,7 @@
       transform: scale(1.05);
       box-shadow: 0 0 60px rgba(255, 0, 0, 1);
     }
-    /* End Credits Styling (unchanged) */
+    /* End Credits Styling */
     #endCredits {
       display: none;
       position: fixed;
@@ -185,9 +183,9 @@
       float b = random(i + vec2(1.0, 0.0));
       float c = random(i + vec2(0.0, 1.0));
       float d = random(i + vec2(1.0, 1.0));
-      vec2 u = f*f*(3.0-2.0*f);
+      vec2 u = f * f * (3.0 - 2.0 * f);
       return mix(a, b, u.x) +
-             (c - a)* u.y * (1.0 - u.x) +
+             (c - a) * u.y * (1.0 - u.x) +
              (d - b) * u.x * u.y;
     }
     void main() {
@@ -235,7 +233,7 @@
           Our written code defines both present and future outcomes<br>
           Programming consists of more than simple code writing because it represents creative art alongside innovative heartbeats which establish the base of digital reality. Technological evolution meets a high standard of obligation because programmers handle these new difficulties that emerge in their trade.
         </p>
-        <!-- Each numbered blog post is now in its own clickable container -->
+        <!-- Each numbered blog post in a clickable container -->
         <div class="blog-post" id="post1">
           <p id="blogText2">
             <strong>1. AI in Coding: Evolution or Extinction?</strong>
@@ -263,252 +261,4 @@
         <div class="blog-post" id="post5">
           <p id="blogText6">
             <strong>5. Software Bloat: The Silent Killer of Performance</strong>
-            Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers from superior ones.
-          </p>
-        </div>
-        <p id="blogText7">
-          <strong>The Code We Leave Behind</strong>
-          Our written functions together with all our daily decisions will determine the digital landscape of the future. Current solution-based approaches define the user experiences which future generations will encounter. Programming functions as both skill and time-tested inheritance system. What we build stands as the essential aspect of development.
-        </p>
-        <p id="blogText8">
-          The question focuses on which type of world we intend to build.
-        </p>
-      </div>
-    </div>
-    <!-- Final Button Section (unchanged from previous version) -->
-    <div class="section" id="finalSection">
-      <button id="endButton">let the code end</button>
-    </div>
-  </div>
-  
-  <!-- End Credits Container (unchanged) -->
-  <div id="endCredits">
-    <p id="credit1">code is infinite</p>
-    <p id="credit2">made with love</p>
-    <p id="credit3">Lumen</p>
-    <div id="nova"></div>
-  </div>
-  
-  <!-- Include Three.js and GSAP Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  
-  <script>
-    /* Initialize Cosmic Background with Enhanced Shader & Particles */
-    let shaderMaterial; // make shaderMaterial global so we can animate its uniform
-    function initBackground() {
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 3000);
-      camera.position.z = 400;
-      
-      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
-      
-      // Create a large plane with our custom shader for a fluid nebula effect
-      const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
-      shaderMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          u_time: { value: 0 },
-          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-          u_baseColor: { value: new THREE.Color(0.6, 0.0, 0.0) } // initial red
-        },
-        vertexShader: document.getElementById('vertexShader').textContent,
-        fragmentShader: document.getElementById('fragmentShader').textContent,
-        depthWrite: false
-      });
-      const plane = new THREE.Mesh(planeGeometry, shaderMaterial);
-      plane.position.z = -600;
-      scene.add(plane);
-      
-      // Particle system for extra cosmic sparkle
-      const particleCount = 1500;
-      const geometry = new THREE.BufferGeometry();
-      const positions = [];
-      const colors = [];
-      const color = new THREE.Color();
-      
-      for(let i = 0; i < particleCount; i++) {
-        positions.push((Math.random() * 2 - 1) * 1000);
-        positions.push((Math.random() * 2 - 1) * 1000);
-        positions.push((Math.random() * 2 - 1) * 1000);
-        color.setHSL(0, 1, 0.5 + Math.random() * 0.1);
-        colors.push(color.r, color.g, color.b);
-      }
-      
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      
-      const material = new THREE.PointsMaterial({ size: 2, vertexColors: true });
-      const particles = new THREE.Points(geometry, material);
-      scene.add(particles);
-      
-      function animate() {
-        requestAnimationFrame(animate);
-        shaderMaterial.uniforms.u_time.value = performance.now() / 1000;
-        particles.rotation.y += 0.0005;
-        renderer.render(scene, camera);
-      }
-      animate();
-      
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth/window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        shaderMaterial.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
-      });
-    }
-    initBackground();
-    
-    /* TextScramble Class for Animated Text Effects (unchanged) */
-    class TextScramble {
-      constructor(el) {
-        this.el = el;
-        this.chars = '!<>-_\\/[]{}—=+*^?#________';
-        this.update = this.update.bind(this);
-      }
-      setText(newText) {
-        const oldText = this.el.innerText;
-        const length = Math.max(oldText.length, newText.length);
-        const promise = new Promise((resolve) => this.resolve = resolve);
-        this.queue = [];
-        for (let i = 0; i < length; i++) {
-          const from = oldText[i] || '';
-          const to = newText[i] || '';
-          const start = Math.floor(Math.random() * 20);
-          const end = start + Math.floor(Math.random() * 20);
-          this.queue.push({ from, to, start, end, char: '' });
-        }
-        cancelAnimationFrame(this.frameRequest);
-        this.frame = 0;
-        this.update();
-        return promise;
-      }
-      update() {
-        let output = '';
-        let complete = 0;
-        for (let i = 0; i < this.queue.length; i++) {
-          let { from, to, start, end, char } = this.queue[i];
-          if (this.frame >= end) {
-            complete++;
-            output += to;
-          } else if (this.frame >= start) {
-            if (!char || Math.random() < 0.28) {
-              char = this.randomChar();
-              this.queue[i].char = char;
-            }
-            output += `<span class="dud">${char}</span>`;
-          } else {
-            output += from;
-          }
-        }
-        this.el.innerHTML = output;
-        if (complete === this.queue.length) {
-          this.resolve();
-        } else {
-          this.frameRequest = requestAnimationFrame(this.update);
-          this.frame++;
-        }
-      }
-      randomChar() {
-        return this.chars[Math.floor(Math.random() * this.chars.length)];
-      }
-    }
-    
-    /* GSAP Scroll-Triggered Animations for Intro & Blog Text */
-    function initTextAnimations() {
-      const texts = [
-        { id: 'text1', newText: 'Welcome to the Cosmic Journey' },
-        { id: 'text2', newText: 'Explore the unknown, transcend boundaries, and awaken your inner universe.' },
-        { id: 'text3', newText: 'Embrace the Future' },
-        { id: 'text4', newText: 'Let each moment inspire you to create, innovate, and dream without limits.' },
-      ];
-      
-      texts.forEach(item => {
-        const el = document.getElementById(item.id);
-        const scramble = new TextScramble(el);
-        ScrollTrigger.create({
-          trigger: '#' + item.id,
-          start: 'top 80%',
-          onEnter: () => {
-            scramble.setText(item.newText);
-            gsap.fromTo(el, 
-              { opacity: 0, scale: 0.8, skewX: 20 }, 
-              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
-            );
-          },
-          onEnterBack: () => {
-            scramble.setText(item.newText);
-            gsap.fromTo(el, 
-              { opacity: 0, scale: 0.8, skewX: 20 }, 
-              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
-            );
-          }
-        });
-      });
-    }
-    initTextAnimations();
-    
-    function initBlogAnimations() {
-      const blogPosts = document.querySelectorAll('.blog-post');
-      blogPosts.forEach(post => {
-        post.addEventListener('click', () => {
-          // Animate background color change: animate u_baseColor from red to dark grey
-          gsap.to(shaderMaterial.uniforms.u_baseColor.value, {
-            r: 0.13,
-            g: 0.13,
-            b: 0.13,
-            duration: 1,
-            ease: "power2.inOut",
-            onUpdate: () => {
-              shaderMaterial.uniforms.u_baseColor.needsUpdate = true;
-            }
-          });
-          // Fade out all other blog posts with glitch effect (using our TextScramble)
-          blogPosts.forEach(otherPost => {
-            if(otherPost !== post){
-              gsap.to(otherPost, { opacity: 0, duration: 0.7, ease: "power2.in" });
-            }
-          });
-          // Expand the clicked post with a glitch reveal
-          const scramble = new TextScramble(post.querySelector('p'));
-          scramble.setText(post.querySelector('p').textContent);
-          gsap.to(post, { 
-            scale: 1.05, 
-            duration: 0.7, 
-            ease: "back.out(2)",
-            onComplete: () => {
-              // Optionally, remove the glitch effect after expansion.
-            }
-          });
-        });
-      });
-    }
-    initBlogAnimations();
-    
-    /* Final Button (unchanged from before) */
-    const endButton = document.getElementById("endButton");
-    endButton.addEventListener("mouseenter", () => {
-      endButton.textContent = "set me free";
-    });
-    endButton.addEventListener("mouseleave", () => {
-      endButton.textContent = "let the code end";
-    });
-    
-    endButton.addEventListener("click", () => {
-      const tl = gsap.timeline();
-      // Suck in effect: scale down main content toward the button’s location while the button remains in place
-      tl.to("#mainContent", {
-        duration: 1, 
-        scale: 0, 
-        transformOrigin: "center center",
-        ease: "power2.inOut"
-      }, 0);
-      // Fade out the background (canvas)
-      tl.to("canvas", {
-        duration: 1, 
-        opacity: 0,
-        ease: "power2.inOut"
-      }, 0);
-      // Delay then show end credits
+            Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers
