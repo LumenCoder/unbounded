@@ -1,8 +1,3 @@
-
-Lumen <arturots557@gmail.com>
-Thu, Feb 27, 9:39 AM (4 days ago)
-to me
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,13 +9,14 @@ to me
     html, body {
       margin: 0;
       padding: 0;
-      background: #000;
+      /* Fallback background in case shader fails */
+      background: linear-gradient(45deg, #000, #300);
       color: #fff;
       font-family: 'Arial', sans-serif;
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Hide text initially to avoid flash before animation */
+    /* Hide text initially to prevent flash before animation */
     h1, p, .blog-content p {
       opacity: 0;
     }
@@ -84,20 +80,27 @@ to me
       align-items: center;
       text-align: center;
       padding: 1.5rem;
+      margin-top: -50px; /* Bring section up slightly */
     }
     #endButton {
-      padding: 20px 40px;
-      font-size: 2rem;
+      padding: 25px 50px;
+      font-size: 2.5rem;
       color: #fff;
       background: linear-gradient(45deg, #ff0000, #ff5555);
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
       transition: all 0.3s ease;
+      animation: pulse 2s infinite;
     }
     #endButton:hover {
-      box-shadow: 0 0 40px rgba(255, 0, 0, 1);
+      box-shadow: 0 0 60px rgba(255, 0, 0, 1);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
     /* End Credits Styling */
     #endCredits {
@@ -116,10 +119,11 @@ to me
       z-index: 10;
     }
     #endCredits p {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin: 10px 0;
+      opacity: 0;
     }
-    /* Nova effect for the explosion finale */
+    /* Nova effect for explosion finale */
     #nova {
       position: absolute;
       width: 50px;
@@ -133,7 +137,7 @@ to me
   </style>
 </head>
 <body>
-  <!-- Shaders for the Cosmic Background -->
+  <!-- Vertex Shader for Cosmic Background -->
   <script id="vertexShader" type="x-shader/x-vertex">
     varying vec2 vUv;
     void main() {
@@ -141,6 +145,8 @@ to me
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   </script>
+  
+  <!-- Fragment Shader for Cosmic Background -->
   <script id="fragmentShader" type="x-shader/x-fragment">
     uniform float u_time;
     uniform vec2 u_resolution;
@@ -234,9 +240,9 @@ to me
   
   <!-- End Credits Container -->
   <div id="endCredits">
-    <p>code is infinite</p>
-    <p>made with love</p>
-    <p>Lumen</p>
+    <p id="credit1">code is infinite</p>
+    <p id="credit2">made with love</p>
+    <p id="credit3">Lumen</p>
     <div id="nova"></div>
   </div>
   
@@ -436,7 +442,7 @@ to me
     
     endButton.addEventListener("click", () => {
       const tl = gsap.timeline();
-      // Suck in effect: scale down main content and canvas toward the button’s center
+      // Suck in effect: scale down main content and canvas toward the center
       tl.to("#mainContent", {
         duration: 1, 
         scale: 0, 
@@ -455,11 +461,17 @@ to me
         backgroundColor: "#fff",
         ease: "power2.out"
       });
-      // Hide all main content and canvas
+      // Hide main content and canvas after explosion
       tl.set("#mainContent, canvas", {display: "none"});
-      // Reveal end credits container and animate them in
+      // Reveal end credits container and animate in text staggered
       tl.set("#endCredits", {display: "flex"});
-      tl.from("#endCredits", {duration: 1, opacity: 0, scale: 0.5, ease: "back.out(2)"});
+      tl.to("#endCredits p", {
+        duration: 1,
+        opacity: 1,
+        scale: 1,
+        stagger: 0.5,
+        ease: "back.out(2)"
+      });
       // Nova explosion effect: animate the nova element expanding and fading
       tl.set("#nova", {opacity: 1, scale: 0});
       tl.to("#nova", {duration: 1, scale: 50, opacity: 0, ease: "expo.out"});
