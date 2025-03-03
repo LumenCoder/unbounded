@@ -1,30 +1,37 @@
+
+Lumen <arturots557@gmail.com>
+Thu, Feb 27, 9:39 AM (4 days ago)
+to me
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cosmic Inspiration Blog</title>
   <style>
     /* Base Reset & Global Styles */
-    * {
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: linear-gradient(45deg, #000, #300);
+      background: #000;
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       overflow-x: hidden;
       scroll-behavior: smooth;
     }
-    /* Three.js canvas placed behind everything */
+    /* Hide text initially to avoid flash before animation */
+    h1, p, .blog-content p {
+      opacity: 0;
+    }
+    /* Ensure the Three.js canvas stays behind all content */
     canvas {
       position: fixed;
       top: 0;
       left: 0;
       z-index: -2;
     }
+    /* Section Styling */
     .section {
       min-height: 100vh;
       display: flex;
@@ -36,6 +43,7 @@
     }
     h1 {
       font-size: 4rem;
+      margin: 0;
       text-transform: uppercase;
       letter-spacing: 0.5rem;
     }
@@ -44,11 +52,11 @@
       max-width: 800px;
       margin: 0 auto;
     }
-    /* “Dud” characters in glitch effect */
     .dud {
       opacity: 0.5;
       color: #ff5555;
     }
+    /* Blog Content Styling */
     .blog-content {
       max-width: 800px;
       margin: 0 auto;
@@ -67,36 +75,7 @@
       display: block;
       margin-bottom: 0.5rem;
     }
-    /* Each blog post is clickable */
-    .blog-post {
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    .blog-post:hover {
-      transform: scale(1.02);
-    }
-    /* Animated Down Arrows */
-    #scrollArrows {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      align-items: center;
-    }
-    .arrow {
-      width: 20px;
-      height: 20px;
-      border: solid black;
-      border-width: 0 3px 3px 0;
-      transform: rotate(45deg);
-      animation: arrowPulse 2s infinite;
-    }
-    @keyframes arrowPulse {
-      0%   { border-color: black; }
-      50%  { border-color: darkred; }
-      100% { border-color: black; }
-    }
-    /* Final Button Section (at the bottom as before) */
+    /* Final Button Section */
     #finalSection {
       min-height: 100vh;
       display: flex;
@@ -107,21 +86,20 @@
       padding: 1.5rem;
     }
     #endButton {
-      padding: 25px 50px;
-      font-size: 2.5rem;
+      padding: 20px 40px;
+      font-size: 2rem;
       color: #fff;
       background: linear-gradient(45deg, #ff0000, #ff5555);
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+      transition: all 0.3s ease;
     }
     #endButton:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 60px rgba(255, 0, 0, 1);
+      box-shadow: 0 0 40px rgba(255, 0, 0, 1);
     }
-    /* End Credits */
+    /* End Credits Styling */
     #endCredits {
       display: none;
       position: fixed;
@@ -131,7 +109,6 @@
       height: 100%;
       background: #000;
       color: #fff;
-      display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
@@ -139,11 +116,10 @@
       z-index: 10;
     }
     #endCredits p {
-      font-size: 2.5rem;
+      font-size: 2rem;
       margin: 10px 0;
-      opacity: 0;
     }
-    /* Nova Explosion Effect */
+    /* Nova effect for the explosion finale */
     #nova {
       position: absolute;
       width: 50px;
@@ -157,25 +133,23 @@
   </style>
 </head>
 <body>
-  <!-- Vertex Shader -->
+  <!-- Shaders for the Cosmic Background -->
   <script id="vertexShader" type="x-shader/x-vertex">
     varying vec2 vUv;
-    void main(){
+    void main() {
       vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   </script>
-  <!-- Fragment Shader (with fluid offset and animated base color) -->
   <script id="fragmentShader" type="x-shader/x-fragment">
     uniform float u_time;
     uniform vec2 u_resolution;
-    uniform vec3 u_baseColor;
     varying vec2 vUv;
     
-    float random(in vec2 st) {
+    float random (in vec2 st) {
       return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
     }
-    float noise(in vec2 st) {
+    float noise (in vec2 st) {
       vec2 i = floor(st);
       vec2 f = fract(st);
       float a = random(i);
@@ -184,85 +158,65 @@
       float d = random(i + vec2(1.0, 1.0));
       vec2 u = f*f*(3.0-2.0*f);
       return mix(a, b, u.x) +
-             (c - a) * u.y * (1.0 - u.x) +
+             (c - a)* u.y * (1.0 - u.x) +
              (d - b) * u.x * u.y;
     }
-    void main(){
+    void main() {
       vec2 st = gl_FragCoord.xy / u_resolution.xy;
       vec2 pos = (st - 0.5) * 3.0;
-      pos += 0.1 * vec2(sin(u_time * 0.5), cos(u_time * 0.5));
       float r = length(pos);
       float angle = atan(pos.y, pos.x);
       angle += 0.5 * sin(u_time + r * 10.0);
       vec2 uv = vec2(r * cos(angle), r * sin(angle));
       float n = noise(uv * 5.0 + u_time * 0.2);
-      vec3 color = mix(vec3(0.0), u_baseColor, n);
+      vec3 color = mix(vec3(0.0, 0.0, 0.0), vec3(0.6, 0.0, 0.0), n);
       color += (1.0 - smoothstep(0.0, 0.5, r)) * vec3(0.2, 0.0, 0.0);
       gl_FragColor = vec4(color, 1.0);
     }
   </script>
   
-  <!-- Main Content -->
+  <!-- Main Content Container -->
   <div id="mainContent">
-    <!-- Section 1: Header & Animated Arrows -->
+    <!-- Introductory Sections -->
     <div class="section" id="section1">
       <h1 id="text1">Welcome to the Cosmic Journey</h1>
-      <div id="scrollArrows">
-        <div class="arrow"></div>
-        <div class="arrow"></div>
-        <div class="arrow"></div>
-      </div>
     </div>
-    <!-- Section 2 -->
     <div class="section" id="section2">
       <p id="text2">Explore the unknown, transcend boundaries, and awaken your inner universe.</p>
     </div>
-    <!-- Section 3 -->
     <div class="section" id="section3">
       <h1 id="text3">Embrace the Future</h1>
     </div>
-    <!-- Section 4 -->
     <div class="section" id="section4">
       <p id="text4">Let each moment inspire you to create, innovate, and dream without limits.</p>
     </div>
-    <!-- Blog Section -->
+    <!-- Blog Content Section -->
     <div class="section" id="sectionBlog">
       <div class="blog-content">
         <p id="blogText1">
           Our written code defines both present and future outcomes<br>
           Programming consists of more than simple code writing because it represents creative art alongside innovative heartbeats which establish the base of digital reality. Technological evolution meets a high standard of obligation because programmers handle these new difficulties that emerge in their trade.
         </p>
-        <!-- Five clickable blog posts -->
-        <div class="blog-post" id="post1">
-          <p id="blogText2">
-            <strong>1. AI in Coding: Evolution or Extinction?</strong>
-            Artificial intelligence exists today to write software code and repair program flaws while making continuous self-optimizations. The efficiency claims of GitHub Copilot generate concerns about whether developers receive empowerment or face replacement. The training process of AI models on open-source code generates ethical issues regarding intellectual property rights and bias-related problems. The future of coding exists in the way programmers learn to control AI technology rather than in AI taking over programming responsibilities.
-          </p>
-        </div>
-        <div class="blog-post" id="post2">
-          <p id="blogText3">
-            <strong>2. The digital realm exists because of cybersecurity which operates through protective computer codes.</strong>
-            Every keystroke has consequences. An individual vulnerability has the power to endanger millions of people from cyberattacks. Secure code writing stands as a mandatory responsibility because data functions as digital currency in present-day society. Quantum computing technology now poses a threat to all encryption methods which compels developers to create new security approaches. The ongoing battle between defenders and hackers continues indefinitely so the most effective tool we possess comes from our acquired understanding.
-          </p>
-        </div>
-        <div class="blog-post" id="post3">
-          <p id="blogText4">
-            <strong>3. Open-Source vs. Proprietary: Freedom or Control?</strong>
-            A group of people hold the belief that code must exist as a free resource which advances human progress. The development of software requires both financial support and organizational structure as well as exclusive control to achieve significant advancements. Both difference-making open-source projects and the world-changing powerful technologies are controlled by corporate interests although their development comes from open-source programming. The world will be shaped by which force emerges victorious.
-          </p>
-        </div>
-        <div class="blog-post" id="post4">
-          <p id="blogText5">
-            <strong>4. Low-Code & No-Code: A Gateway or a Gimmick?</strong>
-            Software development becomes possible without writing code. Thousands now can develop applications through low-code and no-code software platforms yet developers question the effectiveness of fundamental development practices. The tools reduce boundaries but genuine innovation needs people who grasp the inner workings to achieve it. Programmers will evolve into architectural designers instead of software construction specialists.
-          </p>
-        </div>
-        <div class="blog-post" id="post5">
-          <p id="blogText6">
-            <strong>5. Software Bloat: The Silent Killer of Performance</strong>
-            Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers from superior ones.
-          </p>
-        </div>
+        <p id="blogText2">
+          <strong>1. AI in Coding: Evolution or Extinction?</strong>
+          Artificial intelligence exists today to write software code and repair program flaws while making continuous self-optimizations. The efficiency claims of GitHub Copilot generate concerns about whether developers receive empowerment or face replacement. The training process of AI models on open-source code generates ethical issues regarding intellectual property rights and bias-related problems. The future of coding exists in the way programmers learn to control AI technology rather than in AI taking over programming responsibilities.
+        </p>
+        <p id="blogText3">
+          <strong>2. The digital realm exists because of cybersecurity which operates through protective computer codes.</strong>
+          Every keystroke has consequences. An individual vulnerability has the power to endanger millions of people from cyberattacks. Secure code writing stands as a mandatory responsibility because data functions as digital currency in present-day society. Quantum computing technology now poses a threat to all encryption methods which compels developers to create new security approaches. The ongoing battle between defenders and hackers continues indefinitely so the most effective tool we possess comes from our acquired understanding.
+        </p>
+        <p id="blogText4">
+          <strong>3. Open-Source vs. Proprietary: Freedom or Control?</strong>
+          A group of people hold the belief that code must exist as a free resource which advances human progress. The development of software requires both financial support and organizational structure as well as exclusive control to achieve significant advancements. Both difference-making open-source projects and the world-changing powerful technologies are controlled by corporate interests although their development comes from open-source programming. The world will be shaped by which force emerges victorious.
+        </p>
+        <p id="blogText5">
+          <strong>4. Low-Code & No-Code: A Gateway or a Gimmick?</strong>
+          Software development becomes possible without writing code. Thousands now can develop applications through low-code and no-code software platforms yet developers question the effectiveness of fundamental development practices. The tools reduce boundaries but genuine innovation needs people who grasp the inner workings to achieve it. Programmers will evolve into architectural designers instead of software construction specialists.
+        </p>
+        <p id="blogText6">
+          <strong>5. Software Bloat: The Silent Killer of Performance</strong>
+          Modern applications consume excessive power for what reason? The excess software code diminishes hardware capabilities by negatively affecting processing time alongside causing increased user ineffectiveness. Coding with minimalism serves three essential purposes: it demonstrates hardware respect as well as user-friendly design principles and sustainable development practices. Optimization functions as a fundamental mindset which distinguishes skillful developers from superior ones.
+        </p>
         <p id="blogText7">
           <strong>The Code We Leave Behind</strong>
           Our written functions together with all our daily decisions will determine the digital landscape of the future. Current solution-based approaches define the user experiences which future generations will encounter. Programming functions as both skill and time-tested inheritance system. What we build stands as the essential aspect of development.
@@ -272,7 +226,7 @@
         </p>
       </div>
     </div>
-    <!-- Final Button Section -->
+    <!-- Final Section with the Unique Button -->
     <div class="section" id="finalSection">
       <button id="endButton">let the code end</button>
     </div>
@@ -280,38 +234,34 @@
   
   <!-- End Credits Container -->
   <div id="endCredits">
-    <p id="credit1">code is infinite</p>
-    <p id="credit2">made with love</p>
-    <p id="credit3">Lumen</p>
+    <p>code is infinite</p>
+    <p>made with love</p>
+    <p>Lumen</p>
     <div id="nova"></div>
   </div>
   
-  <!-- GSAP and Three.js Libraries -->
+  <!-- Include Three.js and GSAP Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
   
   <script>
-    // Register ScrollTrigger plugin
-    gsap.registerPlugin(ScrollTrigger);
-    
-    // Initialize Cosmic Background
-    let shaderMaterial;
+    /* Initialize Cosmic Background with Enhanced Shader & Particles */
     function initBackground() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 1, 3000);
       camera.position.z = 400;
+      
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
       
-      // Create a large plane using our custom shader (fluid nebula)
+      // Create a large plane with our custom shader for a nebula effect
       const planeGeometry = new THREE.PlaneGeometry(1000, 1000);
-      shaderMaterial = new THREE.ShaderMaterial({
+      const shaderMaterial = new THREE.ShaderMaterial({
         uniforms: {
           u_time: { value: 0 },
-          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-          u_baseColor: { value: new THREE.Color(0.6, 0.0, 0.0) } // starts as red
+          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
         },
         vertexShader: document.getElementById('vertexShader').textContent,
         fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -321,21 +271,24 @@
       plane.position.z = -600;
       scene.add(plane);
       
-      // Particle system for extra cosmic sparkle
+      // Particle system for additional cosmic sparkle
       const particleCount = 1500;
       const geometry = new THREE.BufferGeometry();
       const positions = [];
       const colors = [];
       const color = new THREE.Color();
-      for (let i = 0; i < particleCount; i++) {
+      
+      for(let i = 0; i < particleCount; i++) {
         positions.push((Math.random() * 2 - 1) * 1000);
         positions.push((Math.random() * 2 - 1) * 1000);
         positions.push((Math.random() * 2 - 1) * 1000);
         color.setHSL(0, 1, 0.5 + Math.random() * 0.1);
         colors.push(color.r, color.g, color.b);
       }
+      
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
       geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      
       const material = new THREE.PointsMaterial({ size: 2, vertexColors: true });
       const particles = new THREE.Points(geometry, material);
       scene.add(particles);
@@ -349,7 +302,7 @@
       animate();
       
       window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.aspect = window.innerWidth/window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         shaderMaterial.uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight);
@@ -357,7 +310,7 @@
     }
     initBackground();
     
-    // TextScramble Class for Glitch Effect
+    /* TextScramble Class for Animated Text Effects */
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -412,14 +365,15 @@
       }
     }
     
-    // Scroll-Triggered Text Animations (with glitch effect)
+    /* GSAP Scroll-Triggered Animations for Intro & Blog Text */
     function initTextAnimations() {
       const texts = [
         { id: 'text1', newText: 'Welcome to the Cosmic Journey' },
         { id: 'text2', newText: 'Explore the unknown, transcend boundaries, and awaken your inner universe.' },
         { id: 'text3', newText: 'Embrace the Future' },
-        { id: 'text4', newText: 'Let each moment inspire you to create, innovate, and dream without limits.' }
+        { id: 'text4', newText: 'Let each moment inspire you to create, innovate, and dream without limits.' },
       ];
+      
       texts.forEach(item => {
         const el = document.getElementById(item.id);
         const scramble = new TextScramble(el);
@@ -428,4 +382,88 @@
           start: 'top 80%',
           onEnter: () => {
             scramble.setText(item.newText);
-            gsap.from
+            gsap.fromTo(el, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          },
+          onEnterBack: () => {
+            scramble.setText(item.newText);
+            gsap.fromTo(el, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          }
+        });
+      });
+    }
+    initTextAnimations();
+    
+    function initBlogAnimations() {
+      const blogParagraphs = document.querySelectorAll('.blog-content p');
+      blogParagraphs.forEach(paragraph => {
+        const scramble = new TextScramble(paragraph);
+        ScrollTrigger.create({
+          trigger: paragraph,
+          start: 'top 90%',
+          onEnter: () => {
+            scramble.setText(paragraph.textContent);
+            gsap.fromTo(paragraph, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          },
+          onEnterBack: () => {
+            scramble.setText(paragraph.textContent);
+            gsap.fromTo(paragraph, 
+              { opacity: 0, scale: 0.8, skewX: 20 }, 
+              { opacity: 1, scale: 1, skewX: 0, duration: 0.7, ease: "back.out(2)" }
+            );
+          }
+        });
+      });
+    }
+    initBlogAnimations();
+    
+    /* Final Button Interactivity and Ending Sequence */
+    const endButton = document.getElementById("endButton");
+    endButton.addEventListener("mouseenter", () => {
+      endButton.textContent = "set me free";
+    });
+    endButton.addEventListener("mouseleave", () => {
+      endButton.textContent = "let the code end";
+    });
+    
+    endButton.addEventListener("click", () => {
+      const tl = gsap.timeline();
+      // Suck in effect: scale down main content and canvas toward the button’s center
+      tl.to("#mainContent", {
+        duration: 1, 
+        scale: 0, 
+        transformOrigin: "center center",
+        ease: "power2.inOut"
+      }, 0);
+      tl.to("canvas", {
+        duration: 1, 
+        scale: 0, 
+        transformOrigin: "center center",
+        ease: "power2.inOut"
+      }, 0);
+      // Explosion effect: flash white background briefly
+      tl.to("body", {
+        duration: 0.5,
+        backgroundColor: "#fff",
+        ease: "power2.out"
+      });
+      // Hide all main content and canvas
+      tl.set("#mainContent, canvas", {display: "none"});
+      // Reveal end credits container and animate them in
+      tl.set("#endCredits", {display: "flex"});
+      tl.from("#endCredits", {duration: 1, opacity: 0, scale: 0.5, ease: "back.out(2)"});
+      // Nova explosion effect: animate the nova element expanding and fading
+      tl.set("#nova", {opacity: 1, scale: 0});
+      tl.to("#nova", {duration: 1, scale: 50, opacity: 0, ease: "expo.out"});
+    });
+  </script>
+</body>
+</html>
